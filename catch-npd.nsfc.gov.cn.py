@@ -6,10 +6,6 @@ Created on Thu Sep  7 09:04:54 2017
 @author: caper911
 """
 
-
-# url = http://npd.nsfc.gov.cn/fundingProjectSearchAction!search.action
-
-
 #RatiNo
 #ProName
 #ItemClassification
@@ -28,7 +24,6 @@ head = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.11 (
 
 cookies = {'JSESSIONID' : 'D715D4CE2EF12A4A3BBBBF1FC90ED1A9'}
 
-cookies1 = {'JSESSIONID':'6C5AB7A32CC675B21311F8D7BDFB62B5'}
 data = { 'pageSize':'21','currentPage':'1',
         'fundingProject.projectNo':'',
         'fundingProject.name':'',
@@ -44,7 +39,7 @@ data = { 'pageSize':'21','currentPage':'1',
 
 #==============================================================================
 url = r'http://npd.nsfc.gov.cn/fundingProjectSearchAction!search.action'
-html_total = requests.post(url, data = data,cookies = cookies1,headers = head)
+html_total = requests.post(url, data = data,cookies = cookies,headers = head)
 #print(html_total.text)
 
 ###
@@ -66,7 +61,7 @@ pattern=re.compile('\d{8}')
 
 while i < 5:
     data['currentPage'] = str(i)
-    htmltotal = requests.post(url, data = data,cookies = cookies1,headers = head)    
+    htmltotal = requests.post(url, data = data,cookies = cookies,headers = head)    
     items = re.findall(pattern,htmltotal.text)
     for item in items:
         id_number_set.add(item)
@@ -77,6 +72,7 @@ while i < 5:
 
 Targeturl = r'http://npd.nsfc.gov.cn/projectDetail.action?pid='
 Project_list = []
+
 for itemnum in id_number_set: 
     Targeturl = Targeturl + itemnum
     
