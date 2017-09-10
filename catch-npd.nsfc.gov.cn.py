@@ -19,7 +19,17 @@ Created on Thu Sep  7 09:04:54 2017
 import re
 import requests
 from bs4 import BeautifulSoup
+import pymongo
 
+
+###
+#create mongo database
+client = pymongo.MongoClient("localhost",27017)
+
+sense = client['sense'] 
+info_list = sense['info_list']
+
+########################################################################################################
 head = {'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.11 TaoBrowser/2.0 Safari/536.11'}
 
 cookies = {'JSESSIONID' : 'D715D4CE2EF12A4A3BBBBF1FC90ED1A9'}
@@ -130,6 +140,7 @@ for itemnum in id_number_set:
     
     Targeturl = r'http://npd.nsfc.gov.cn/projectDetail.action?pid='
     Project_list.append(Project_dict)
+    info_list.insert_one(Project_dict)
     print('catching id:'+ itemnum +' success!')
     
 print(Project_list)
