@@ -151,8 +151,8 @@ def get_all_comments(url):
             #all_comments_dict['avatarUrl'] = item['user']['avatarUrl'] # 头像地址
             print(all_comments_dict)
             
-            all_comments_list.append(all_comments_dict)
-            song_comment.insert_one(all_comments_dict)
+            all_comments_list.append(all_comments_dict['comment'])
+            #song_comment.insert_one(all_comments_dict)
             all_comments_dict = {}
             
         print("第%d页抓取完毕!" % (i+1))
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     url = "http://music.163.com/weapi/v1/resource/comments/R_SO_4_438466185/?csrf_token="
     filename = u"yellow"
     all_comments_list = get_all_comments(url)
-
+    save_to_file(all_comments_list,'wordcloud')
     end_time = time.time() #结束时间
     print("程序耗时%f秒." % (end_time - start_time))
     
