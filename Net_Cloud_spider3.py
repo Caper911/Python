@@ -7,9 +7,17 @@ import requests
 import json
 import codecs
 import time
+import pymongo
 
 #the way of decode Key
 #https://www.zhihu.com/question/36081767
+
+###
+#use mongo store data
+client = pymongo.MongoClient('localhost',27017)
+
+cloud163 = client['cloud163']
+
 
 # 头部信息
 headers = {
@@ -85,6 +93,8 @@ def get_json(url,params,encSecKey):
 # 抓取热门评论，返回热评列表
 def get_hot_comments(url):
     hot_comments_list = []
+    hot_comments_dict = {}
+    song_comment = cloud163['song_comment']
     hot_comments_list.append(u"用户ID 用户昵称 用户头像地址 评论时间 点赞总数 评论内容\n")
     params = get_params(1) # 第一页
     encSecKey = get_encSecKey()
@@ -93,20 +103,26 @@ def get_hot_comments(url):
     hot_comments = json_dict['hotComments'] # 热门评论
     print("共有%d条热门评论!" % len(hot_comments))
     for item in hot_comments:
-            comment = item['content'] # 评论内容
-            likedCount = item['likedCount'] # 点赞总数
-            comment_time = item['time'] # 评论时间(时间戳)
-            userID = item['user']['userID'] # 评论者id
-            nickname = item['user']['nickname'] # 昵称
-            avatarUrl = item['user']['avatarUrl'] # 头像地址
-            comment_info = userID + " " + nickname + " " + avatarUrl + " " + comment_time + " " + likedCount + " " + comment + u"\n"
-            hot_comments_list.append(comment_info)
+            hot_comments_dict['nickname'] = item['user']['nickname'] # 昵称
+            hot_comments_dict['comment'] = item['content'] # 评论内容
+            hot_comments_dict['likedCount'] = item['likedCount'] # 点赞总数
+            hot_comments_dict['comment_time'] = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(((int)(item['time']))/1000)) # 评论时间(时间戳)
+            
+            #hot_comments_dict['userID'] = item['user']['userID'] # 评论者id
+            #hot_comments_dict['avatarUrl'] = item['user']['avatarUrl'] # 头像地址
+            print(hot_comments_dict)
+            
+            hot_comments_list.append(hot_comments_dict)
+            song_comment.insert_one(hot_comments_dict)
+            hot_comments_dict = {}
             
     return hot_comments_list
 
 # 抓取某一首歌的全部评论
 def get_all_comments(url):
-    all_comments_list = [] # 存放所有评论
+    all_comments_list = [] # 存放所有评论\
+    all_comments_dict = {}
+    song_comment = cloud163['song_comment']
     all_comments_list.append(u"用户ID 用户昵称 用户头像地址 评论时间 点赞总数 评论内容\n") # 头部信息
     params = get_params(1)
     encSecKey = get_encSecKey()
@@ -126,17 +142,21 @@ def get_all_comments(url):
         if i == 0:
             print("共有%d条评论!" % comments_num) # 全部评论总数
         for item in json_dict['comments']:
-            comment = item['content'] # 评论内容
-            likedCount = item['likedCount'] # 点赞总数
-            comment_time = item['time'] # 评论时间(时间戳)
-            userID = item['user']['userId'] # 评论者id
-            nickname = item['user']['nickname'] # 昵称
-            avatarUrl = item['user']['avatarUrl'] # 头像地址
-            comment_info = str(userID) + " " + str(nickname) + " " + str(avatarUrl) + " " + str(comment_time) + " " + str(likedCount) + " " + str(comment) 
+            all_comments_dict['nickname'] = item['user']['nickname'] # 昵称
+            all_comments_dict['comment'] = item['content'] # 评论内容
+            all_comments_dict['likedCount'] = item['likedCount'] # 点赞总数
+            all_comments_dict['comment_time'] = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(((int)(item['time']))/1000)) # 评论时间(时间戳)
+
+            #all_comments_dict['userID'] = item['user']['userId'] # 评论者id
+            #all_comments_dict['avatarUrl'] = item['user']['avatarUrl'] # 头像地址
+            print(all_comments_dict)
             
-            all_comments_list.append(comment_info)
-            print(comment_info)
+            all_comments_list.append(all_comments_dict)
+            song_comment.insert_one(all_comments_dict)
+            all_comments_dict = {}
+            
         print("第%d页抓取完毕!" % (i+1))
+        
     return all_comments_list
 
 
@@ -151,7 +171,7 @@ if __name__ == "__main__":
     url = "http://music.163.com/weapi/v1/resource/comments/R_SO_4_438466185/?csrf_token="
     filename = u"yellow"
     all_comments_list = get_all_comments(url)
-    save_to_file(all_comments_list,filename)
+
     end_time = time.time() #结束时间
     print("程序耗时%f秒." % (end_time - start_time))
     
